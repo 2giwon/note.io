@@ -50,3 +50,51 @@ https://android.googlesource.com/platform/frameworks/base/+/39791594560b2326625b
     android:theme="@style/AppTheme.Transparent">
 ```
 
+
+위의 코드를
+
+
+``` android:screenOrientation="unspecified" ```
+
+### 액티비티 투명 없애기
+
+```
+<item name="android:windowBackground">@android:color/transparent</item>
+<item name="android:windowIsTranslucent">true</item>
+```
+
+위의 코드를
+
+
+```
+<item name="android:windowBackground">@android:color/white</item>
+```
+
+
+등으로 바꾼다.
+
+### Sdk 26 에서만 windowsTranslucent 안쓰기
+
+values/style.xml
+```
+<style name="TransparentBase" parent="@style/AppTheme">
+	<item name="android:windowBackground">@android:color/transparent</item>
+</style>
+
+<style name="AppTheme.Transparent" parent="@style/TransparentBase">
+	<item name="android:windowIsTranslucent">true</item>
+</style>
+```
+
+
+values-v26/style.xml
+```
+<style name="AppTheme.Transparent" parent="@style/TransparentBase" />
+```
+
+values-v27/style.xml
+```
+<style name="AppTheme.Transparent" parent="@style/TransparentBase">
+    <item name="android:windowIsTranslucent">true</item>
+</style>
+```
