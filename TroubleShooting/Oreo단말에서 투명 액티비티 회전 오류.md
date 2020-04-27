@@ -4,7 +4,7 @@ Oreo (8.0, sdk 26) 단말에서 투명액티비티를 화면고정하여 출력 
 
 `"Only fullscreen opaque activities can request orientation"`
 
-![Figure.1](https://s3.us-west-2.amazonaws.com/secure.notion-static.com/3148ae84-0452-4bdb-8b6a-9569942676ab/Untitled.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAT73L2G45O3KS52Y5%2F20200420%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20200420T001706Z&X-Amz-Expires=86400&X-Amz-Signature=5587ed1f43cc10acf29a5f00fd1a094b92118c864bbeb816449cdafdf5168761&X-Amz-SignedHeaders=host&response-content-disposition=filename%20%3D%22Untitled.png%22)
+![Figure.1](oreo_sdk_transparent_activity_exception.png)
 
 위의 에러는 투명 액티비티를 화면고정할 경우 발생한다.
 
