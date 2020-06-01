@@ -3,7 +3,7 @@
 
 커스텀 뷰 안에 EditText가 있는 경우 Edit
 
-![]()
+![https://github.com/2giwon/note.io/master/TroubleShooting/resource/EditTextView.png](https://github.com/2giwon/note.io/master/TroubleShooting/resource/EditTextView.png)
 
 위와 같이 EditText가 특정 뷰 안에 있고 입력이 길어지면 뷰보다 커져서입력 내용이 짤리게 된다.
 
