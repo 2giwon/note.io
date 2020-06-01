@@ -5,9 +5,9 @@
 
 ![image](https://github.com/2giwon/note.io/blob/master/TroubleShooting/resource/EditTextView.png)
 
-위와 같이 EditText가 특정 뷰 안에 있고 입력이 길어지면 뷰보다 커져서입력 내용이 짤리게 된다.
+위와 같이 EditText가 특정 뷰 안에 있고 입력이 길어지면 뷰보다 커져서 입력 내용이 짤리게 된다.
 
-안드로이드에서 이런 문제를 해결하기 위해서아래와 같이 EditText에 속성값을 넣어주면 된다.
+안드로이드에서 이런 문제를 해결하기 위해서 아래와 같이 EditText에 속성값을 넣어주면 된다.
 
 ```kotlin
 android:maxLength="20"
