@@ -51,3 +51,71 @@ val paint = Paint().apply {
 그럼 api도 있겠다. 
 
 모두 해결된 것 같지만 길이를 안다고 해도 뷰 바깥까지 입력이 되는 text를 막을 방법이 없다.
+
+# 해결 방법 2
+
+TextWatcher를 사용하여 입력되기 전 (`beforeTextChanged` 를 이용해 실제 뷰에 텍스트가 그려지기 전)에 길이를 파악하여 입력을 막아보자.
+
+```kotlin
+editText.addTextChangedListener(object : TextWatcher{
+        override fun afterTextChanged(s: Editable?) {
+						...
+        }
+
+        override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
+						val length = getMeasureTextLength(s.toString())
+						if (length > width) {
+		            editText.text = s.toString()
+		        }
+						
+        }
+
+        override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+						...
+        }
+
+    })
+```
+
+위의 코드가 문제가 있어보이나?
+
+사실 위의 코드는 **매우 큰 문제가 있다!**
+
+절대 위의 코드 처럼 해서는 안된다. 
+
+왜냐하면 editText에 text 값을 넣어주면 다시 `TextWatcher`가 호출을 반복하기 때문에
+
+`StackOverFlowException`이 발생할 수 있다.
+
+# 해결 방법 2-1
+
+안드로이드 editText API 중에는 inputFilter가 있다.
+
+입력된 text가 뷰에 그려지기 전에 한번 걸러주는 api이다.
+
+아래와 같이 filter를 구성하면 된다.
+
+```kotlin
+fun AppCompatEditText.blockMeasureTextLengthExceedFilter(): InputFilter {
+    return InputFilter { _, _, _, dest, _, _ ->
+        paint.textSize = textSize
+        val measureText: Int = getMeasureTextWidth(dest.toString())
+
+        if (measureText > width) {
+            ""
+        } else {
+            null
+        }
+    }
+}
+
+fun AppCompatEditText.getMeasureTextWidth(text: String): Int {
+    val bounds = Rect()
+    paint.getTextBounds(text, 0, text.length, bounds)
+    return bounds.width()
+}
+```
+
+아직까지 문제는 없다
+
+끝
