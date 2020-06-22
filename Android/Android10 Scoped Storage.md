@@ -71,3 +71,83 @@ private fun openDirectory() {
 받아온 데이터를 어떻게 처리해야 하지?
 
 간단한 방식으로 DocumentFile을 사용할 수 있습니다.
+```kotlin
+fun addObserve() {
+    viewModel.directoryUri.observe(this, Observer { event ->
+        event.getContentIfNotHandled().let {
+            val documentFile: DocumentFile =
+                DocumentFile.fromTreeUri(this@FileBrowserActivity, it) ?: return@Observer
+            viewModel.loadDirectory(documentFile)
+        }
+    })
+}
+```
+
+DocumentFile에는 파일의 각종정보가 들어있습니다. id, 이름, 타입, 용량 등등...
+
+그럼 다 해결한 것 같습니다. 파일브라우저 만드는 건 어렵지 않네요!
+
+실행해보시면 아직 멀었다는 것을 알 수 있습니다.
+
+**속도가 매우매우 느립니다!**
+
+root 경로를 탐색했을때 걸리는 시간은 제 폰 기준으로 19~20초 정도 걸렸습니다.
+
+이대로 사용한다면 사용성에 문제가 큽니다.
+
+문제는 DocumentFile에서 listFiles() 를 하면 파일 리스트를 생성하는데 시간이 굉장히 오래 걸리는 것 입니다.
+
+### 해결 방법
+
+1. RxJava를 통해서 파일 하나를 읽어 올때마다 화면에 보여주어서 사용자에게 
+
+처리되고 있다는 화면을 보여준다.
+
+```kotlin
+fun loadDirectory(documentFile: DocumentFile) {
+    Observable.create<DocumentItem> { emit ->
+        _documentList.clear()
+        documentFile.listFiles().forEach { emit.onNext(DocumentItem(it)) }
+        emit.onComplete()
+    }
+        .doOnSubscribe { _loadingBar.postValue(true) }
+        .doOnComplete { _loadingBar.postValue(false) }
+        .subscribeOn(Schedulers.io())
+        .observeOn(AndroidSchedulers.mainThread())
+        .subscribeBy(
+            onNext = {
+                _documentList.add(it)
+                _documents.value = _documentList
+            },
+
+            onComplete = {
+                _documents.value = _documentList
+                    .asSequence()
+                    .filter { !(it.name?.startsWith(".") ?: true) }
+                    .sortedWith(compareBy({ !it.isDirectory }, { it.name?.toLowerCase() }))
+                    .toList()
+            }
+        )
+        .addTo(compositeDisposable)
+}
+```
+
+파일 한 개씩 가져와서 뿌려주고 로딩이 끝나면 .으로 시작하는 폴더를 제거하고 오름차순으로 정렬하도록 했습니다.
+
+결과는 만족스러운 결과를 보여주지만 그래도 아직 실제 속도는 느리기 때문에 좋은 해결방법은 아닙니다.
+
+2. listFiles를 확인 해보면 하나의 항목(이름이라던가 용량등)을 요청할 때마다 ContentResolver를 통해서 요청을 하게 되어있습니다. 
+
+이부분이 처음에는 굉장히 이상했습니다.
+
+그렇다면 직접 ContentResolver를 통해서 필요한 항목을 요청하면 되는 것이 아닌가?
+
+## 개선된 파일 브라우저
+
+이제 DocumentFile 따위는 필요 없습니다.
+
+직접 요청합시다.
+
+```kotlin
+
+```
