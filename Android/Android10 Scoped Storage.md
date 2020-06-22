@@ -149,5 +149,69 @@ fun loadDirectory(documentFile: DocumentFile) {
 직접 요청합시다.
 
 ```kotlin
+private fun loadDirectoryFromContentResolver(documentUri: Uri): List<DocumentItem> {
 
+    val treeDocumentUri: Uri = getTreeDocumentUri(documentUri)
+
+    val contentResolver: ContentResolver = applicationContext.contentResolver
+    val childrenUri = DocumentsContract.buildChildDocumentsUriUsingTree(
+        treeDocumentUri,
+        DocumentsContract.getDocumentId(treeDocumentUri)
+    )
+
+    val result = mutableListOf<DocumentItem>()
+    var cursor: Cursor? = null
+
+    try {
+        cursor = createCursor(contentResolver, childrenUri)
+
+        cursor?.let { c ->
+            while (c.moveToNext()) {
+                val documentId = c.getDocumentID()
+                val name = c.getDocumentName()
+                val type = c.getDocumentType()
+                val isDirectory: Boolean = type == DocumentsContract.Document.MIME_TYPE_DIR
+                val lastModified = c.getLastModified().toLastModifiedTime()
+                val uri = getDocumentUri(treeDocumentUri, documentId)
+                val size = c.getDocumentSize().toFileSizeUnit()
+
+                result.addDocumentItem(name, type, isDirectory, uri, size, lastModified)
+            }
+
+        }
+    } catch (e: Exception) {
+        throw e
+    } finally {
+        closeQuietly(cursor)
+    }
+
+    return result
+
+}
 ```
+
+```kotlin
+private fun createCursor(contentResolver: ContentResolver, childrenUri: Uri): Cursor? {
+    return contentResolver.query(
+        childrenUri,
+        arrayOf(
+            DocumentsContract.Document.COLUMN_DOCUMENT_ID,
+            DocumentsContract.Document.COLUMN_DISPLAY_NAME,
+            DocumentsContract.Document.COLUMN_MIME_TYPE,
+            DocumentsContract.Document.COLUMN_LAST_MODIFIED,
+            DocumentsContract.Document.COLUMN_SIZE
+        ), null, null, null
+    )
+}
+```
+
+ContentResolver를 통해서 필요한 항목을 컬럼으로 요청하여 Cursor를 받고
+
+Cursor를 통해서 파일들을 가져오는 방식으로 처리합니다.
+
+결과는?
+
+20 초씩 걸리는 것이 1초로 줄어든 것을 확인 할 수 있습니다!!
+
+자세한 사항은 아래 코드를 확인바랍니다.
+[2giwon/ScopedStorageExample](https://github.com/2giwon/ScopedStorageExample)
