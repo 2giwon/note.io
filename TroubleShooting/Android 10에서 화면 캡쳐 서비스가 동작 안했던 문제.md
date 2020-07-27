@@ -22,7 +22,7 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     ```
 
-- <service> 를 사용하는 태크에 foregroundServiceType으로 mediaProjection이 적용되어 잇는지 확인 한다.
+- `<service>` 를 사용하는 태크에 foregroundServiceType으로 mediaProjection이 적용되어 잇는지 확인 한다.
 
     ```kotlin
     android:foregroundServiceType="mediaProjection"
