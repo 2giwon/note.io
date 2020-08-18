@@ -116,6 +116,37 @@ fun AppCompatEditText.getMeasureTextWidth(text: String): Int {
 }
 ```
 
-아직까지 문제는 없다
+# 해결 방법 2-2
 
-끝
+2-1 방법은 특정 단말에서 깜빡임 문제가 있을 수 있다.
+
+때문에 Filter클래스 중 LengthFilter를 이용하는 방법이 있다.
+
+```kotlin
+fun AppCompatEditText.filterExceedMeasureTextLength(): InputFilter {
+    paint.textSize = textSize
+    val textWidth = getMeasureTextWidth(HereYourText)
+    return InputFilter.LengthFilter(width / textWidth)
+
+}
+```
+
+edittext가 measure 된 이후에 필요할 경우 아래와 같이 하면 된다.
+
+```kotlin
+doOnLayout {
+    if (filters.isEmpty()) {
+        filters += filterExceedMeasureTextLength()
+    }
+}
+```
+
+KTX를 사용하여 보일러 플레이트를 제거했다.
+
+대신 JvmTarget 1.8 이 필요하다.
+
+```kotlin
+kotlinOptions {
+    jvmTarget = JavaVersion.VERSION_1_8
+}
+```
