@@ -93,7 +93,7 @@ ViewHolders를 Pool에 던지기위한 적합한 시기를 결정하는 요소�
 - 첫번째는 Pre-Layout
 - 두번째는 Post-Layout
 
-![https://s3-us-west-2.amazonaws.com/secure.notion-static.com/3855f0c7-4eca-470f-98f9-26ed4b3498e0/Untitled.png](https://s3-us-west-2.amazonaws.com/secure.notion-static.com/3855f0c7-4eca-470f-98f9-26ed4b3498e0/Untitled.png)
+[https://miro.medium.com/proxy/0*4ootRC3XBgBD5HQG](https://miro.medium.com/proxy/0*4ootRC3XBgBD5HQG)
 
 - View B 가 삭제되고 View C가 그 자리를 차지
 - 이 경우 Post-Layout이 그림 처럼 나타나 애니메이션을 예측
