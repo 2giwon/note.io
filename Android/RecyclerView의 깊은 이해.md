@@ -159,7 +159,7 @@ Cache가 가득 차면 풀로 들어가기 시작함.
 
 화면을 위아래로 스크롤할 때 일부 동작
 
-[https://miro.medium.com/proxy/0*cUiKS4_r-DwP1t4s](https://miro.medium.com/proxy/0*cUiKS4_r-DwP1t4s)
+![https://miro.medium.com/proxy/0*cUiKS4_r-DwP1t4s](https://miro.medium.com/proxy/0*cUiKS4_r-DwP1t4s)
 
 ## Scroll Downwards
 
