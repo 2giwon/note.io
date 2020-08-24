@@ -123,3 +123,54 @@ View B를 변경했다면?
 또한 ViewHolder는 ViewType에 따라 결정되는 각 Pool로 이동합니다.
 
 Cache는 Position을 처리하는 반면 Pool은 ViewType을 처리하는 것을 잊지마세요.*
+
+# View Cache
+
+ViewCache 는 Cache 라고도 합니다.
+
+Cache의 기본 용량은 2입니다.
+
+Cache에서 View를 찾으면 View초기화 하거나 바인딩 할 필요가 없으며 있는 그대로 inflate됩니다.
+
+### **요약:**
+
+→ View가 어디에도 없으면 새 View가 picture에 나타남
+
+→ View가 Pool에 있는 경우 바인딩 됨
+
+→ View가 Cache에 있으면 생성이나 Bounding이 필요하지 않음
+
+따라서 View가 보이는 화면 경계를 벗어나면 언제든지 Cache또는 Pool로 이동할 수 있음.
+
+또한 View를 검색하는 동안 Cache또는 Pool에서 나타날 수 있음.
+
+주어진 시점에서 View를 추적하기 위해 어댑터의 두가지 방법을 사용할 수 있음.
+
+### 위의 것은 :
+
+1. onViewAttachedToWindow()
+2. onDetachFromWindow()
+
+View를 Cache로 던지는 방법도 있음.
+
+> Cache가 비어있고 기본 용량이 있는 Pool이 있는경우 Cache가 
+가득차지 않는 한 ViewHolder는 Cache로 이동함.
+Cache가 가득 차면 풀로 들어가기 시작함.
+
+화면을 위아래로 스크롤할 때 일부 동작
+
+[https://miro.medium.com/proxy/0*cUiKS4_r-DwP1t4s](https://miro.medium.com/proxy/0*cUiKS4_r-DwP1t4s)
+
+## Scroll Downwards
+
+- 아래로 스크롤하면 Cache항목과 Pool로 구성된 뷰의 꼬리가 있음.
+- 위 그림에서 View 8 이 화면에 표시되기 시작하고
+- ViewHolder가 Cache에 있으면 Pool View를 사용.
+- View 6이 상단에 사라지기 시작하면 View 4를 Pool로 push
+- Cache 로 이동
+
+## Scroll Upwards
+
+- 위 스크롤은 다름
+- View가 먼저 Cache에서 시작
+- 바인딩이 필요하지 않으므로 로딩시작이 효율적
