@@ -174,3 +174,46 @@ Cache가 가득 차면 풀로 들어가기 시작함.
 - 위 스크롤은 다름
 - View가 먼저 Cache에서 시작
 - 바인딩이 필요하지 않으므로 로딩시작이 효율적
+
+# ViewCacheExtension
+
+- 사용자가 직접 설정 한 특수한 유형의 캐시
+- 구현에 따라 동작
+- 설정하려면 RecyclerView의 setViewCacheExtension() 메소드를 사용한 다음 인터페이스를 구현
+
+### ViewCacheExtension의 사용법
+
+- ViewCacheExtension 의 주된 효과적인 사용은 고정된 위치, 수량이 있는 ViewHolder가 있을때
+- 이러한 종류의 View가 반복해서 바인딩 되는 것을 방지
+- ViewType을 신경쓰지 않으므로 캐시를 사용할 수 없음
+- 이런 경우 사용하면 좋음
+- 제대로 사용하지 않으면 문제가 발생
+
+구현할 인터페이스
+
+```java
+View getViewForPositionAndType(Recycler recycler, int position,int type);
+```
+
+- View뿐만 아니라 해당 ViewHolder에 해당하는 View를 반환해야 됨
+- 로직은 ViewHolder를 만들 때마다 참조가 View의 레이아웃 매개 변수에 저장되는 것
+- RecyclerView에 View를 요청하면 RecyclerView는 ViewCacheExtension에서 해당 View를 찾음
+- ViewCacheExtension의 문제는 ViewHolder의 다른 상태가 있다는 것
+- 플래그와 위치도 포함
+- RecyclerView는 모든 것을 처리
+
+## 구현 중 주의사항
+
+ViewCacheExtension 메서드를 사용하여 View를 얻고 해당 View가 전달된 위치에 대한
+View와 일치하지 않으면 버그가 발생합니다. 
+
+## 무엇이 잘못되었나?
+
+1. LayoutManager는 먼저 AdapterHelper 에게 마지막 레이아웃 이후의 모든 어댑터 변경 사항을 처리하도록 요청
+2. LayoutManager는 RecyclerView를 호출하여 ViewHolders의 위치에 오프셋을 적용
+3. 이에 대한 응답으로 RecyclerView는 현재 표시된 View의 ViewHolders를 반복
+
+이것이 문제의원인!
+
+- ViewCacheExtension을 사용하여 캐시 한 일부 View가 있다고 가정
+- RecyclerView가 이러한 View의 오프셋을 적용하지 못하면 충돌 발생!
