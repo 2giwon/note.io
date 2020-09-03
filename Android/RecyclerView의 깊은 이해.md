@@ -217,3 +217,66 @@ View와 일치하지 않으면 버그가 발생합니다.
 
 - ViewCacheExtension을 사용하여 캐시 한 일부 View가 있다고 가정
 - RecyclerView가 이러한 View의 오프셋을 적용하지 못하면 충돌 발생!
+- 이에 대한 응답으로 RecyclerView는 현재 표시된 View의 ViewHolders를 반복
+
+이것이 문제가 발생하는 지점.
+
+ViewCacheExtension 을 사용하여 캐시 한 일부 View가 있다고 가정
+
+Recyclerview가 이러한 뷰에 오프셋을 적용하지 못하면 충돌 발생
+
+# Hidden Views
+
+- RecyclerView 바운드에 벗어나지만 자식으로 남아 있는 View
+- View를 경계밖으로 던지는 과정을 애니메이션 하는 데 사용
+- LayoutManager의 관점에서 이러한 View는 Gone됩니다.
+- View를 검색하는 동안에는 계산에 포함되지 않음
+
+숨겨진 view가 그림에 나타나는 상황을 고려해보면 : 
+
+1. 두 개의 뷰 A와 B
+2. View B를 삭제하고 View C를 삽입
+3. 사라지는 애니메이션이 끝나기 전에 View B가 다시 필요하다고 결정.
+
+RecyclerView는 ChildHelper 로 이동
+
+> *ChildHelper는 Hidden Views 및 기타 View의 인덱스를 관리*
+
+- ChildHelper 에서 View B를 다시 가져옴.
+- Hidden View를 사용하여 View를 다시 가져옴.
+
+# 변경 및 첨부된 Scrap Views
+
+## Scrap
+
+- RecyclerView가 ViewHolder를 검색하는동안 가장 먼저 검색하는 뷰 목록
+- LayoutManager 가 View 배치를 시작하면 모든 View가 스크랩에 덤프
+- 스크랩된 곳에서 View가 하나씩 선택되고 inflate 됩니다.
+
+예를 들면:
+
+- View A, B, C, D 가 있고
+- A, B, C 가 visible한 상태라면
+
+1. View B 를 삭제한다면
+2. 다시 re-Layout이 발생하고 모든 View가 Scrap에 덤프
+3. 그 후 View A와 C는 스크랩에서 가져오고 View D는 Pool 또는 Cache에서 가져옴
+
+View B가 Post-layout 이후에 추가되지 않았으므로 View B는 재사용을 위해 Pool로 이동
+
+![https://miro.medium.com/proxy/0*uVqR712O-WUg88lb.png](https://miro.medium.com/proxy/0*uVqR712O-WUg88lb.png)
+
+> *Scrap은 또한 LayoutManager와 RecyclerView의 기능이 서로 겹치지 않도록 합니다.*
+
+RecyclerView의 Scrap 유형
+
+1. Attached Scrap : Pre-Layout에서만 사용 가능
+2. Changed Scrap : Pre 또는 Post layout중에만 사용할 수 있음
+
+ViewHolder의 관련항목이 변경되고
+
+ItemAnomator가 cross-fade 애니메이션과 같은 일부 애니메이션을 적용하려는 경우 View가 변경된 
+
+스크랩으로 이동합니다.
+
+그렇지 않은 경우  케이스 보기는 첨부된 Scrap에 덤프됩니다.
