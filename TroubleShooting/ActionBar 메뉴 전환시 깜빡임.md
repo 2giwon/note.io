@@ -10,7 +10,9 @@
 
 덜커덕 하는 문제가 발생할 수 있다.
 
+![image](https://github.com/2giwon/note.io/blob/master/TroubleShooting/resource/actionbar_2.jpg)
 
+![image](https://github.com/2giwon/note.io/blob/master/TroubleShooting/resource/actionbar.jpg)
 
 인터넷 검색을 할때에는
 
