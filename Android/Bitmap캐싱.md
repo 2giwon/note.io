@@ -213,3 +213,50 @@ fun getDiskCacheDir(context: Context, uniqueName: String): File {
 하지만 이는 초기화 전에 캐시에 액세스할 기회가 있음을 의미합니다. 
 이 문제를 해결하기 위해 위의 구현에서 잠금 객체는 캐시가 초기화될 때까지 앱이 디스크 캐시에서 읽지 않도록 합니다.
 ```
+
+# Configuration Change 처리
+
+화면 회전과 같은 Configuration Change 로 인해 Android는 Activity를 재 시작 할 수 있습니다.
+
+이럴경우 캐시 처리는 어떻게 해야할까요?
+
+이 캐시는 `setRetainInstance(true)` 호출을 통해 보존되는 `Fragment`를 사용하여 새 Activity 인스턴스에 전달될 수 있습니다.
+
+Activity가 다시 생성되면 보관된 Fragment로 부터 캐시 객체를 가져올 수 있습니다.
+
+```kotlin
+private const val TAG = "RetainFragment"
+...
+private lateinit var mMemoryCache: LruCache<String, Bitmap>
+
+override fun onCreate(savedInstanceState: Bundle?) {
+    ...
+    val retainFragment = RetainFragment.findOrCreateRetainFragment(supportFragmentManager)
+    mMemoryCache = retainFragment.retainedCache ?: run {
+        LruCache<String, Bitmap>(cacheSize).also { memoryCache ->
+            ... // Initialize cache here as usual
+            retainFragment.retainedCache = memoryCache
+        }
+    }
+    ...
+}
+
+class RetainFragment : Fragment() {
+    var retainedCache: LruCache<String, Bitmap>? = null
+
+    companion object {
+        fun findOrCreateRetainFragment(fm: FragmentManager): RetainFragment {
+            return (fm.findFragmentByTag(TAG) as? RetainFragment) ?: run {
+                RetainFragment().also {
+                    fm.beginTransaction().add(it, TAG).commit()
+                }
+            }
+        }
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        retainInstance = true
+    }
+}
+```
