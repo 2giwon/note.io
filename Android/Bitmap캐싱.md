@@ -1,5 +1,7 @@
+```
 참고 : 대부분의 경우 Glide 라이브러리를 사용하여 앱에서 비트맵을 가져오고 디코딩하고 표시하는것을 추천
 Glide는 이러한 작업을 비롯하여 Android에서 비트맵과 기타 이미지를 사용하는 다른 관련 작업을 처리할 때 대부분의 복잡성을 추상화합니다.
+```
 
 # 메모리 캐시 사용
 
@@ -54,10 +56,11 @@ private lateinit var memoryCache: LruCache<String, Bitmap>
         ...
     }
 ```
-
+```
 참고: 이 예에서는 애플리케이션 메모리의 1/8이 캐시로 할당됩니다. 
 일반/hdpi 기기의 경우 최소 4MB 정도입니다. 
 해상도가 800x480인 기기에서 이미지로 채워진 전체 화면 GridView는 약 1.5MB(800*480*4바이트)를 사용하므로 최소 약 2.5페이지의 이미지를 메모리에 캐시합니다.
+```
 
 - 비트맵을 ImageView에 로드할 때 먼저 LruCache가 확인됨.
 - 발견되면 ImageView에 즉시 사용
@@ -205,7 +208,8 @@ fun getDiskCacheDir(context: Context, uniqueName: String): File {
     return File(cachePath + File.separator + uniqueName)
 }
 ```
-
+```
 참고: 디스크 캐시를 초기화하는 것도 디스크 작업이 필요하므로 기본 스레드에서 실행하면 안 됩니다. 
 하지만 이는 초기화 전에 캐시에 액세스할 기회가 있음을 의미합니다. 
 이 문제를 해결하기 위해 위의 구현에서 잠금 객체는 캐시가 초기화될 때까지 앱이 디스크 캐시에서 읽지 않도록 합니다.
+```
