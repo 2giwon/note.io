@@ -92,3 +92,120 @@ private inner class BitmapWorkerTask : AsyncTask<Int, Unit, Bitmap>() {
     ...
 }
 ```
+
+# 디스크 캐시 사용
+
+메모리 캐시에서 사용하는 비트맵은 애플리케이션이 중단되면 없어 질 수 있으며
+
+많은 용량의 이미지를 캐시할 수 없습니다.
+
+또한 계속해서 캐시를 갱신할 경우 다시 이미지를 생성할 때 시간이 소요됩니다.
+
+디스크 캐시는 비트맵을 유지할 수 있고 더이상 사용하지 않을 때 저장하여 로드 시간을 줄일 수 있습니다.
+
+메모리 캐시보다는 속도는 느립니다.
+
+항상 백그라운드에서 동작해야됩니다.
+
+이미지가 이미지 갤러리 애플리케이션 같은 곳에서 자주 액세스된다면 캐시된 이미지를 저장하기에 ContentProvider가 더 적합한 장소가 될 수 있습니다
+
+## DiskLruCache 예제
+
+```kotlin
+private const val DISK_CACHE_SIZE = 1024 * 1024 * 10 // 10MB
+private const val DISK_CACHE_SUBDIR = "thumbnails"
+...
+private var diskLruCache: DiskLruCache? = null
+private val diskCacheLock = ReentrantLock()
+private val diskCacheLockCondition: Condition = diskCacheLock.newCondition()
+private var diskCacheStarting = true
+
+override fun onCreate(savedInstanceState: Bundle?) {
+    ...
+    // Initialize memory cache
+    ...
+    // Initialize disk cache on background thread
+    val cacheDir = getDiskCacheDir(this, DISK_CACHE_SUBDIR)
+    InitDiskCacheTask().execute(cacheDir)
+    ...
+}
+
+internal inner class InitDiskCacheTask : AsyncTask<File, Void, Void>() {
+    override fun doInBackground(vararg params: File): Void? {
+        diskCacheLock.withLock {
+            val cacheDir = params[0]
+            diskLruCache = DiskLruCache.open(cacheDir, DISK_CACHE_SIZE)
+            diskCacheStarting = false // Finished initialization
+            diskCacheLockCondition.signalAll() // Wake any waiting threads
+        }
+        return null
+    }
+}
+
+internal inner class  BitmapWorkerTask : AsyncTask<Int, Unit, Bitmap>() {
+    ...
+
+    // Decode image in background.
+    override fun doInBackground(vararg params: Int?): Bitmap? {
+        val imageKey = params[0].toString()
+
+        // Check disk cache in background thread
+        return getBitmapFromDiskCache(imageKey) ?:
+                // Not found in disk cache
+                decodeSampledBitmapFromResource(resources, params[0], 100, 100)
+                        ?.also {
+                            // Add final bitmap to caches
+                            addBitmapToCache(imageKey, it)
+                        }
+    }
+}
+
+fun addBitmapToCache(key: String, bitmap: Bitmap) {
+    // Add to memory cache as before
+    if (getBitmapFromMemCache(key) == null) {
+        memoryCache.put(key, bitmap)
+    }
+
+    // Also add to disk cache
+    synchronized(diskCacheLock) {
+        diskLruCache?.apply {
+            if (!containsKey(key)) {
+                put(key, bitmap)
+            }
+        }
+    }
+}
+
+fun getBitmapFromDiskCache(key: String): Bitmap? =
+        diskCacheLock.withLock {
+            // Wait while disk cache is started from background thread
+            while (diskCacheStarting) {
+                try {
+                    diskCacheLockCondition.await()
+                } catch (e: InterruptedException) {
+                }
+
+            }
+            return diskLruCache?.get(key)
+        }
+
+// Creates a unique subdirectory of the designated app cache directory. Tries to use external
+// but if not mounted, falls back on internal storage.
+fun getDiskCacheDir(context: Context, uniqueName: String): File {
+    // Check if media is mounted or storage is built-in, if so, try and use external cache dir
+    // otherwise use internal cache dir
+    val cachePath =
+            if (Environment.MEDIA_MOUNTED == Environment.getExternalStorageState()
+                    || !isExternalStorageRemovable()) {
+                context.externalCacheDir.path
+            } else {
+                context.cacheDir.path
+            }
+
+    return File(cachePath + File.separator + uniqueName)
+}
+```
+
+참고: 디스크 캐시를 초기화하는 것도 디스크 작업이 필요하므로 기본 스레드에서 실행하면 안 됩니다. 
+하지만 이는 초기화 전에 캐시에 액세스할 기회가 있음을 의미합니다. 
+이 문제를 해결하기 위해 위의 구현에서 잠금 객체는 캐시가 초기화될 때까지 앱이 디스크 캐시에서 읽지 않도록 합니다.
